@@ -191,6 +191,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_walkSpeed: 5
   m_runSpeed: 10
+  m_playerModelTransform: {fileID: 2115615874}
 --- !u!54 &303491767
 Rigidbody:
   m_ObjectHideFlags: 0

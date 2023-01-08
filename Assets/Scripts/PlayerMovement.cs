@@ -8,10 +8,12 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float m_walkSpeed = 5f;
     [SerializeField] private float m_runSpeed = 10f;
     private Vector3 m_forwardDirection;
+    private Vector3 m_moveDirection;
 
     //references
     private CharacterController m_controller;
     private Animator m_animator;
+    [SerializeField] private Transform m_playerModelTransform;
 
     private void Start() 
     {
@@ -23,6 +25,7 @@ public class PlayerMovement : MonoBehaviour
     {
         UpdateForwardDirection();
         HandleInput();
+        RotatePlayerOnMoveDirection();
     }
 
     private void UpdateForwardDirection()
@@ -35,24 +38,47 @@ public class PlayerMovement : MonoBehaviour
         m_forwardDirection.Normalize();
     }
 
+    private void RotatePlayerOnMoveDirection()
+    {
+        // if the move direction is not zero
+        if (m_moveDirection != Vector3.zero)
+        {
+            m_playerModelTransform.forward = m_moveDirection;
+        }
+    }
+
     private void HandleInput()
     {
-        // if the vertical axis is not 0
-        // move control input
-        if (Input.GetAxis("Vertical") != 0)
+        #region Update Move Direction
+        // update move direction
+        m_moveDirection = m_forwardDirection * Input.GetAxis("Vertical");
+
+        // move right direction depend on the m_forwardDirection
+        Vector3 moveRight = Quaternion.AngleAxis(90f, Vector3.up) * m_forwardDirection;
+        Vector3 moveHorizontal = moveRight * Input.GetAxis("Horizontal");
+
+        m_moveDirection += moveHorizontal;
+        m_moveDirection.Normalize();
+        #endregion
+
+        // move the player if the move direction is not zero
+        if ( m_moveDirection != Vector3.zero)
         {
-            // if shift is pressed
+            // if the player is holding shift
             if (Input.GetKey(KeyCode.LeftShift))
             {
-                Run(Input.GetAxis("Vertical"));
+                // run
+                Run(m_moveDirection);
             }
             else
             {
-                Walk(Input.GetAxis("Vertical"));
+                // walk
+                Walk(m_moveDirection);
             }
         }
         else
         {
+            // idle
             Idle();
         }
 
@@ -73,18 +99,16 @@ public class PlayerMovement : MonoBehaviour
         SetAnimatorMoveSpeed(0f);
     }
 
-    private void Walk(float forwardWeight)
+    private void Walk(Vector3 moveDirection)
     {
-        m_controller.Move(m_forwardDirection * m_walkSpeed *Time.deltaTime * forwardWeight);
+        m_controller.Move(moveDirection * m_walkSpeed * Time.deltaTime);
         SetAnimatorMoveSpeed(0.5f);
     }
-
-    private void Run(float forwardWeight)
+    private void Run( Vector3 moveDirection)
     {
-        m_controller.Move(m_forwardDirection * m_runSpeed *Time.deltaTime * forwardWeight);
+        m_controller.Move(moveDirection * m_runSpeed * Time.deltaTime);
         SetAnimatorMoveSpeed(1f);
     }
-
     private void Attack()
     {
         m_animator.SetTrigger("Attack");
