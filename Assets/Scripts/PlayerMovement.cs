@@ -11,10 +11,12 @@ public class PlayerMovement : MonoBehaviour
 
     //references
     private CharacterController m_controller;
+    private Animator m_animator;
 
     private void Start() 
     {
         m_controller = GetComponent<CharacterController>();
+        m_animator = GetComponentInChildren<Animator>();
     }
 
     private void Update() 
@@ -36,6 +38,7 @@ public class PlayerMovement : MonoBehaviour
     private void HandleInput()
     {
         // if the vertical axis is not 0
+        // move control input
         if (Input.GetAxis("Vertical") != 0)
         {
             // if shift is pressed
@@ -48,15 +51,42 @@ public class PlayerMovement : MonoBehaviour
                 Walk(Input.GetAxis("Vertical"));
             }
         }
+        else
+        {
+            Idle();
+        }
+
+        // attack input
+        if (Input.GetKeyDown(KeyCode.Mouse0))
+        {
+            Attack();
+        }
+    }
+
+    private void SetAnimatorMoveSpeed(float speed)
+    {
+        m_animator.SetFloat("Speed", speed, 0.1f, Time.deltaTime);
+    }
+
+    private void Idle()
+    {
+        SetAnimatorMoveSpeed(0f);
     }
 
     private void Walk(float forwardWeight)
     {
         m_controller.Move(m_forwardDirection * m_walkSpeed *Time.deltaTime * forwardWeight);
+        SetAnimatorMoveSpeed(0.5f);
     }
 
     private void Run(float forwardWeight)
     {
         m_controller.Move(m_forwardDirection * m_runSpeed *Time.deltaTime * forwardWeight);
+        SetAnimatorMoveSpeed(1f);
+    }
+
+    private void Attack()
+    {
+        m_animator.SetTrigger("Attack");
     }
 }
